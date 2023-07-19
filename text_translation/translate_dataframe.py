@@ -1,16 +1,14 @@
-from itertools import chain
-import pandas as pd
+"""Class to translate a dataframe"""
 import numpy as np
-from tqdm import tqdm
 
-from text_translation.translation_model import TranslationModel
-from text_translation.utils import chunks
+from dsl.text_translation.translation_model import TranslationModel
 
 
 class TranslateDataframe:
     """
-    TranslateDataframe is a class to translate a dataframe column of a source language into the target language.
-    During the translation, two additional columns are created, one for the text prepared and one for the translated text.
+    TranslateDataframe is a class to translate a dataframe column from source to target language.
+    During the translation, two additional columns are created,
+    one for the text prepared and one for the translated text.
 
     Arguments:
         df: dataframe to work on
@@ -24,7 +22,10 @@ class TranslateDataframe:
     Usage:
 
     ```python
-    df_fr = pd.DataFrame([">>en<< Je vous présente TranslationModel", ">>en<< C'est plutot sympa"], columns=["raw_texts"])
+    df_fr = pd.DataFrame(
+        [">>en<< Je vous présente TranslationModel",
+        ">>en<< C'est plutot sympa"], columns=["raw_texts"]
+        )
 
     translate_df = TranslateDataframe(
             df_fr,
@@ -46,7 +47,7 @@ class TranslateDataframe:
         prepare_prefix="_prepared",
         translation_prefix="_translation",
         chunk_size=20,
-        gpu=False
+        gpu=False,
     ):
         self.df = df
         self.column = column
@@ -55,24 +56,29 @@ class TranslateDataframe:
         self.prepared_column = column + prepare_prefix
         self.translation_column = column + translation_prefix
         self.chunk_size = chunk_size
-        self.device=-1
+        self.device = -1
         if gpu:
-            self.device=0
-        
+            self.device = 0
 
     def get_translated_column(self):
         """
         Get the translated column
-        :return: Translated column
-        :rtype: pd.Series
+
+        Returns
+        -------
+        Translated column: pandas.Series
+            Translated column
         """
         return self.df[self.translation_column]
 
     def prepare_for_translation(self):
         """
-        Prepare the column for translation by adding the target language at the beginning of the text
-        :return: Dataframe with prepared column
-        :rtype: pd.DataFrame
+        Prepare the column for translation by adding target language at the beginning of the text.
+
+        Returns
+        -------
+        df: pandas.DataFrame
+            Dataframe with prepared column
         """
         self.df[self.prepared_column] = self.df[self.column].map(
             lambda text: self.try_to_prepare(text)
@@ -82,19 +88,18 @@ class TranslateDataframe:
     def translate_column(self):
         """
         Translate the needed column
-        :return: list of translated texts
-        :rtype: list
+
+        Returns
+        -------
+        translated_texts: list
+            list of translated texts
         """
-        translation_model = TranslationModel(self.model_source, self.model_target, self.device)
-        #self.prepare_for_translation()
+        translation_model = TranslationModel(
+            self.model_source, self.model_target, self.device
+        )
         print("Number of texts to translate: ", len(self.df))
         prepared_texts = self.df[self.column].tolist()
-        
-        #prepared_texts = list(chunks(prepared_texts, self.chunk_size))
-        # translated_texts = []
-        # for text_chunk in tqdm(prepared_texts):
-        #     translated_texts.append(translation_model.translate(text_chunk))
-        # translated_texts = list(chain.from_iterable(translated_texts))
+
         translated_texts = translation_model.translate(prepared_texts)
         self.df[self.translation_column] = translated_texts
         return translated_texts
@@ -102,6 +107,16 @@ class TranslateDataframe:
     def try_to_prepare(self, text):
         """
         Try to prepare for translation a given text
+
+        Parameters
+        ----------
+        text: str
+            Text to prepare
+
+        Returns
+        -------
+        prepared_line: str
+            Prepared text
         """
         try:
             prepared_line = f">>{self.model_target}<< {text}"
