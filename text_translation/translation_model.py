@@ -1,3 +1,4 @@
+"""Translation model class"""
 import gc
 import os
 from tqdm import tqdm
@@ -26,7 +27,9 @@ class TranslationModel:
     def __init__(self, source, target, device=-1):
         self.source: str = source
         self.target: str = target
-        self.models_path: str = "/dbfs/mnt/dsl/fs-shared/raw/text_translation/translation_models/"
+        self.models_path: str = (
+            "/dbfs/mnt/datascience/fs-shared/raw/text_translation/translation_models/"
+        )
         self.model_name: str = f"Helsinki-NLP/opus-mt-{source}-{target}"
         self.model_path: str = os.path.join(self.models_path, self.model_name)
         self.tokenizer: MarianTokenizer = None
@@ -49,7 +52,7 @@ class TranslationModel:
             model=self.model,
             tokenizer=self.tokenizer,
             device=self.device,
-            truncation=True
+            truncation=True,
         )
         print(f"Model to translate from {self.source} to {self.target} loaded.")
 
@@ -57,16 +60,24 @@ class TranslationModel:
         """
         Translate the given text to the target language
 
-        :param text_list: list of text to translate
-        :type text_list: list
-        :return: return list of translated text
-        :rtype: list
+        Parameters
+        ----------
+        text_list: list
+            List of text to translate
+
+        Returns
+        -------
+        translated_text: list
+            Return list of translated text
         """
         df = Dataset.from_dict({"to_process": text_list})
-        translated_text = [out[0]["translation_text"] for out in tqdm(self.translater(KeyDataset(df, "to_process"), batch_size=8), total=len(df))]
-
-        # translated_text = self.translater(text_list)
-        # translated_text = [item["translation_text"] for item in translated_text]
+        translated_text = [
+            out[0]["translation_text"]
+            for out in tqdm(
+                self.translater(KeyDataset(df, "to_process"), batch_size=8),
+                total=len(df),
+            )
+        ]
         return translated_text
 
     def clean_cuda(self):
@@ -78,5 +89,4 @@ class TranslationModel:
         if "self.tokenizer" in vars() or "self.tokenizer" in globals():
             del self.tokenizer
         gc.collect()
-        # torch.cuda.empty_cache()
         return True
