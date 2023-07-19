@@ -1,7 +1,8 @@
+"""Script to do multiple translation on multiple languages"""
 import numpy as np
 
-from text_translation.utils import detect_all_languages
-from text_translation.translate_dataframe import TranslateDataframe
+from dsl.text_translation.utils import detect_all_languages
+from dsl.text_translation.translate_dataframe import TranslateDataframe
 
 
 def translate_multiple_languages(
@@ -15,22 +16,29 @@ def translate_multiple_languages(
     engine="langdetect",
 ):
     """
-    Translate a dataframe column according to a translation dict. Allows to translate a column containing many languages.
+    Translate a dataframe column according to a translation dict.
+    Allows to translate a column containing many languages.
 
-    :param translation_dict: dictionarry containing the translation mapping
-    :param df: df to work on
-    :param column: column name to translate
-    :param language_prefix: prefix for the language column
-    :param translation_prefix: prefix for the translated column
-    :param single_target: precise if the target is always the same. If it is the case, the translated columns will be filled by raw text already in the target language.
-    :type translation_dict: dict
-    :type df: pd.DataFrame
-    :type column: str
-    :type language_prefix: str
-    :type translation_prefix: str
-    :type single_target: bool
-    :return: dataframe with the translated columns
-    :rtype: pd.DataFrame
+    Parameters
+    ----------
+    translation_dict: dict
+        Dictionarry containing the translation mapping
+    df: pandas.DataFrame
+        Df to work on
+    column: str
+        Column name to translate
+    language_prefix: str
+        Prefix for the language column
+    translation_prefix: str
+        Prefix for the translated column
+    single_target: bool
+        Precise if the target is always the same. If it is the case,
+        the translated columns will be filled by raw text already in the target language.
+
+    Returns
+    -------
+    df: pandas.DataFrame
+        Dataframe with the translated columns
     """
     print("Detecting language")
     df = detect_all_languages(df, [column], engine=engine)
